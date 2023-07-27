@@ -1,10 +1,19 @@
 const router = require("express").Router();
 const User = require("../models/user");
+const { accountSid, authToken, serviceSID } = require("../config");
+const client = require("twilio")(accountSid, authToken);
 
 // Endpoint to check if a user is present and send a response accordingly
 router.post("/login", async (req, res) => {
-  const { name, isAdmin, phone, isAlreadySignedUp } = req.body;
-
+  const {
+    name,
+    isAdmin,
+    phone = "",
+    email = "",
+    isGoogleUser = false,
+  } = req.body;
+  debugger;
+  console.log(phone);
   try {
     // Check if the user exists based on the provided criteria (e.g., name, phone, etc.)
     const existingUser = await User.findOne({ name, phone });
@@ -20,6 +29,8 @@ router.post("/login", async (req, res) => {
         name,
         isAdmin,
         phone,
+        email,
+        isGoogleUser,
       });
 
       // Save the new user to the database
@@ -35,6 +46,22 @@ router.post("/login", async (req, res) => {
     res
       .status(500)
       .json({ error: "An error occurred while processing the request", err });
+  }
+});
+
+router.post("/send-otp", async (req, res) => {
+  try {
+    // Download the helper library from https://www.twilio.com/docs/node/install
+    const otp = Math.floor(1000 + Math.random() * 9000);
+    await client.messages.create({
+      from: "+17628001957",
+      body: `Your otp for sport is ${otp}`,
+      to: "+91 9496323611",
+    });
+
+    res.status(200).send({ message: "otp sucessfully sent", otp });
+  } catch (error) {
+    console.log("error", error);
   }
 });
 
