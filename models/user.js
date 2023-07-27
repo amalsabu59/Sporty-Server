@@ -11,8 +11,14 @@ const UserSchema = mongoose.Schema(
     phone: {
       type: Number,
     },
+    email: {
+      type: String,
+    },
+    isGoogleUser: {
+      type: Boolean,
+    },
   },
   { timestamps: true }
 );
 
-module.exports = mongoose.model("login", UserSchema);
+module.exports = mongoose.model("user", UserSchema);
