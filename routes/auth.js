@@ -12,8 +12,7 @@ router.post("/login", async (req, res) => {
     email = "",
     isGoogleUser = false,
   } = req.body;
-  debugger;
-  console.log(phone);
+
   try {
     // Check if the user exists based on the provided criteria (e.g., name, phone, etc.)
     const existingUser = await User.findOne({ name, phone });
@@ -49,14 +48,18 @@ router.post("/login", async (req, res) => {
   }
 });
 
-router.post("/send-otp", async (req, res) => {
+router.put("/send-otp", async (req, res) => {
+  const { phone } = req.body;
+  console.log(phone, req.body);
+  if (!phone)
+    return res.status(301).json({ message: "Please enter a phone number" });
   try {
     // Download the helper library from https://www.twilio.com/docs/node/install
     const otp = Math.floor(1000 + Math.random() * 9000);
     await client.messages.create({
       from: "+17628001957",
       body: `Your otp for sport is ${otp}`,
-      to: "+91 9496323611",
+      to: phone,
     });
 
     res.status(200).send({ message: "otp sucessfully sent", otp });
