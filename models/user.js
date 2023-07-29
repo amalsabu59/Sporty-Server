@@ -10,9 +10,11 @@ const UserSchema = mongoose.Schema(
     },
     phone: {
       type: Number,
+      unique: true,
     },
     email: {
       type: String,
+      unique: true,
     },
     isGoogleUser: {
       type: Boolean,

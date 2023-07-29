@@ -12,10 +12,15 @@ router.post("/login", async (req, res) => {
     email = "",
     isGoogleUser = false,
   } = req.body;
-
   try {
-    // Check if the user exists based on the provided criteria (e.g., name, phone, etc.)
-    const existingUser = await User.findOne({ name, phone });
+    let itemToCheck = {};
+    if (isGoogleUser && email) {
+      itemToCheck = { email };
+    } else if (!isGoogleUser && phone) {
+      itemToCheck = { phone };
+    }
+
+    const existingUser = await User.findOne(itemToCheck);
 
     if (existingUser) {
       // If the user already exists, send a 200 response
@@ -48,7 +53,7 @@ router.post("/login", async (req, res) => {
   }
 });
 
-router.put("/send-otp", async (req, res) => {
+router.post("/send-otp", async (req, res) => {
   const { phone } = req.body;
   console.log(phone, req.body);
   if (!phone)
@@ -59,12 +64,43 @@ router.put("/send-otp", async (req, res) => {
     await client.messages.create({
       from: "+17628001957",
       body: `Your otp for sport is ${otp}`,
-      to: phone,
+      to: `+91${phone}`,
     });
 
-    res.status(200).send({ message: "otp sucessfully sent", otp });
+    res.status(200).send({ message: "otp sucessfully sent", otp, phone });
   } catch (error) {
     console.log("error", error);
+  }
+});
+
+router.post("/update-name", async (req, res) => {
+  try {
+    const { id, name } = req.body;
+
+    // Check if id and name are provided in the request body
+    if (!id || !name) {
+      return res
+        .status(400)
+        .json({ error: "Both 'id' and 'name' are required." });
+    }
+
+    // Find the user by the provided id and update the name field
+    const updatedUser = await User.findOneAndUpdate(
+      { _id: id },
+      { $set: { name } },
+      { new: true } // To return the updated document instead of the original one
+    );
+
+    // Check if the user with the provided id exists
+    if (!updatedUser) {
+      return res.status(404).json({ error: "User not found." });
+    }
+
+    // Respond with the updated user
+    res.json({ user: updatedUser });
+  } catch (error) {
+    console.error("Error updating user:", error);
+    res.status(500).json({ error: "Internal server error." });
   }
 });
 
