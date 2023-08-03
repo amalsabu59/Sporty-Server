@@ -3,11 +3,11 @@
 const router = require("express").Router();
 const address = require("../models/address");
 
-router.post("/", async (req, res) => {
+router.post("/:userId", async (req, res) => {
   try {
     //create new address
     const newAddress = new address({
-      userId: req.body.userId,
+      userId: req.params.userId,
       name: req.body.name,
       address: req.body.address,
       city: req.body.city,
@@ -18,7 +18,7 @@ router.post("/", async (req, res) => {
     const savedAddress = await newAddress.save();
     //save user return response
     const allAddresses = await address.find({
-      userId: req.body.userId,
+      userId: req.params.userId,
     });
 
     res.status(201).json(allAddresses);
@@ -28,11 +28,13 @@ router.post("/", async (req, res) => {
   }
 });
 
-router.put("/:addressId", async (req, res) => {
+router.put("/:id", async (req, res) => {
   try {
-    const addressId = req.params.addressId;
+    const addressId = req.body._id;
+    const userId = req.params.id;
     const updateData = {
       name: req.body.name,
+      userId: userId,
       address: req.body.address,
       city: req.body.city,
       state: req.body.state,
@@ -40,7 +42,7 @@ router.put("/:addressId", async (req, res) => {
       phone: req.body.phone,
     };
     const updatedAddress = await address.findOneAndUpdate(
-      { _id: addressId, userId: req.body.userId }, // Ensure address belongs to the user to prevent unauthorized update
+      { _id: addressId, userId: userId }, // Ensure address belongs to the user to prevent unauthorized update
       updateData,
       { new: true } // Return the updated address
     );
@@ -52,7 +54,7 @@ router.put("/:addressId", async (req, res) => {
     }
 
     const allAddresses = await address.find({
-      userId: req.body.userId,
+      userId: userId,
     });
 
     res.status(200).json(allAddresses);
@@ -63,12 +65,12 @@ router.put("/:addressId", async (req, res) => {
 });
 
 router.get(`/:id`, async (req, res) => {
-  debugger;
   try {
+    console.time("Starting");
     const allShippingAddress = await address.find({
       userId: req.params.id,
     });
-
+    console.timeEnd("Starting");
     res.status(200).json(allShippingAddress);
   } catch (err) {
     res.status(500).json(err);
