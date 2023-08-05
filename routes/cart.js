@@ -5,7 +5,7 @@ const Products = require("../models/products");
 const getCartProducts = async (req, res, userId) => {
   try {
     // Find the cart with the given userId
-    const cart = await Cart.findOne({ userId }).lean().exec();
+    const cart = await Cart.findOne({ userId, isOrdered: false }).lean().exec();
 
     if (!cart) {
       return res.status(404).json({ error: "Cart not found" });

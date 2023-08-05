@@ -7,6 +7,10 @@ const CartSchema = new mongoose.Schema(
       required: true,
       unique: true,
     },
+    isOrdered: {
+      type: Boolean,
+      default: false,
+    },
     products: [
       {
         productId: {

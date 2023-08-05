@@ -8,6 +8,7 @@ const productsRoutes = require("./routes/products");
 const cartRoutes = require("./routes/cart");
 const addressRoutes = require("./routes/address");
 const razorpayRoutes = require("./routes/razorpay");
+const orderRoutes = require("./routes/orders");
 dotenv.config();
 app.use(express.json());
 app.use(cors());
@@ -22,6 +23,7 @@ app.use("/products", productsRoutes);
 app.use("/cart", cartRoutes);
 app.use("/address", addressRoutes);
 app.use("/payment", razorpayRoutes);
+app.use("/order", orderRoutes);
 
 mongoose
   .connect(process.env.MONGO_URI)
