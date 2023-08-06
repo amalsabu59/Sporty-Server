@@ -40,9 +40,8 @@ const getCartProducts = async (req, res, userId) => {
 // Endpoint to add or update cart
 router.post("/add-cart", async (req, res) => {
   const { userId, products } = req.body;
-
   try {
-    let cart = await Cart.findOne({ userId });
+    let cart = await Cart.findOne({ userId, isOrdered: false });
 
     if (cart) {
       // If the cart exists, update it with the new products data
@@ -56,6 +55,7 @@ router.post("/add-cart", async (req, res) => {
     getCartProducts(req, res, userId);
     // res.status(200).json(cart);
   } catch (err) {
+    console.log(err);
     res.status(500).json({ error: "Failed to add/update cart" });
   }
 });
