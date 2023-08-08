@@ -2,6 +2,7 @@ const router = require("express").Router();
 const Products = require("../models/products");
 const Orders = require("../models/orders");
 const Cart = require("../models/cart");
+const Address = require("../models/address");
 
 const getOrders = async (req, res, userId) => {
   try {
@@ -24,7 +25,7 @@ const getOrders = async (req, res, userId) => {
         continue;
       }
 
-      const finalProduct = []; // Move the declaration inside the loop
+      const finalProduct = [];
 
       for (const product of cart.products) {
         const productsInCart = await Products.find({
@@ -41,10 +42,14 @@ const getOrders = async (req, res, userId) => {
         finalProduct.push(products);
       }
 
-      // Combine the order details and products in cart for the final result
+      // Fetch address information based on the addressId in the order
+      const address = await Address.findOne({ _id: order.addressId });
+
+      // Combine the order details, products in cart, and address for the final result
       ordersWithProducts.push({
         orderDetails: order,
         products: finalProduct,
+        address: address, // Add the address information
       });
     }
 
@@ -56,42 +61,54 @@ const getOrders = async (req, res, userId) => {
 };
 
 router.post("/checkout", async (req, res) => {
-  const { userId, addressId, paymentStatus, paymentId, amountPaid } = req.body;
+  const {
+    userId,
+    addressId,
+    paymentStatus,
+    paymentId,
+    amountPaid,
+    isReordering = false,
+    cartIdForReordering,
+  } = req.body;
   try {
+    debugger;
     let findCart = await Cart.findOne({ userId, isOrdered: false });
 
-    const cartId = findCart._id;
+    let cartId = "";
 
-    let findOrder = await Orders.findOne({ cartId });
+    if (findCart) cartId = findCart._id;
 
-    if (!findOrder) {
-      const order = new Orders({
-        userId,
-        addressId,
-        cartId,
-        paymentStatus,
-        paymentId,
-        amountPaid,
+    if (isReordering) cartId = cartIdForReordering;
+
+    // let findOrder = await Orders.findOne({ cartId });
+
+    // if (!findOrder) {
+    const order = new Orders({
+      userId,
+      addressId,
+      cartId,
+      paymentStatus,
+      paymentId,
+      amountPaid,
+    });
+    await order.save();
+    if (paymentStatus === "captured") {
+      const findCartAndUpdateIsOrdered = await Cart.findByIdAndUpdate(cartId, {
+        isOrdered: true,
       });
-      await order.save();
-      if (paymentStatus === "captured") {
-        const findCartAndUpdateIsOrdered = await Cart.findByIdAndUpdate(
-          cartId,
-          { isOrdered: true }
-        );
 
-        // const deletedCart = await Cart.deleteOne({ _id: cartId });
-        // if (deletedCart.deletedCount === 1) {
-        //   console.log("Cart deleted successfully");
-        // } else {
-        //   console.log("Cart not found or could not be deleted");
-        // }
-      }
-
-      getOrders(req, res, userId);
-    } else {
-      res.status(200).json({ msg: "order already exists" });
+      // const deletedCart = await Cart.deleteOne({ _id: cartId });
+      // if (deletedCart.deletedCount === 1) {
+      //   console.log("Cart deleted successfully");
+      // } else {
+      //   console.log("Cart not found or could not be deleted");
+      // }
     }
+
+    getOrders(req, res, userId);
+    // } else {
+    //   res.status(200).json({ msg: "order already exists" });
+    // }
     // If the cart does not exist, create a new one with the provided data
 
     // getCartProducts(req, res, userId);
