@@ -32,7 +32,9 @@ const getOrders = async (req, res, userId) => {
           _id: { $in: [product.productId] },
         });
 
+        // console.log(productsInCart[0]);
         const products = {
+          id: productsInCart[0]._id,
           title: productsInCart[0].title,
           img: productsInCart[0].img,
           price: productsInCart[0].price,

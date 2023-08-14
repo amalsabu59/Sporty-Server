@@ -26,6 +26,8 @@ const ProductSchema = new mongoose.Schema({
     type: Boolean,
     default: true,
   },
+  rating: [],
+  reviews: [],
 });
 
 module.exports = mongoose.model("Products", ProductSchema);
