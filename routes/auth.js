@@ -5,13 +5,8 @@ const client = require("twilio")(accountSid, authToken);
 
 // Endpoint to check if a user is present and send a response accordingly
 router.post("/login", async (req, res) => {
-  const {
-    name,
-    isAdmin,
-    phone = "",
-    email = "",
-    isGoogleUser = false,
-  } = req.body;
+  const { name, isAdmin, phone = "", email, isGoogleUser = false } = req.body;
+  debugger;
   try {
     let itemToCheck = {};
     if (isGoogleUser && email) {
