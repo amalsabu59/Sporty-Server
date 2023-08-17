@@ -115,8 +115,15 @@ const dummyData = [
     rating: [2],
   },
 ];
+//GET ALL Products
 
-router.post("/add", async (req, res) => {
+router.get("/", async (req, res) => {
+  try {
+    const products = await Products.find();
+    res.status(200).json(products);
+  } catch (error) {}
+});
+router.post("/bulk-add", async (req, res) => {
   try {
     // Insert the dummy data into the database
     const products = await Products.insertMany(dummyData);
@@ -127,13 +134,91 @@ router.post("/add", async (req, res) => {
   }
 });
 
-//GET ALL Products
-
-router.get("/", async (req, res) => {
+router.post("/add", async (req, res) => {
   try {
+    const { title, desc, size, categories, images, price } = req.body;
+
+    // Create a new product instance using the ProductSchema
+    const newProduct = new Products({
+      title,
+      desc,
+      size,
+      categories,
+      img: images, // Assuming 'images' property maps to 'img' in schema
+      price,
+    });
+
+    // Save the new product to the database
+    const product = await newProduct.save();
+
     const products = await Products.find();
     res.status(200).json(products);
-  } catch (error) {}
+  } catch (error) {
+    console.error("Error inserting data:", error);
+    res.status(500).json({ success: false, message: "Failed to add product" });
+  }
+});
+
+router.put("/update/:productId", async (req, res) => {
+  try {
+    const productId = req.params.productId;
+    const { title, desc, size, categories, images, price } = req.body;
+
+    // Find the product by its ID
+    const product = await Products.findById(productId);
+
+    if (!product) {
+      return res
+        .status(404)
+        .json({ success: false, message: "Product not found" });
+    }
+
+    // Update the product properties
+    product.title = title;
+    product.desc = desc;
+    product.size = size;
+    product.categories = categories;
+    product.img = images; // Assuming 'images' property maps to 'img' in schema
+    product.price = price;
+
+    // Save the updated product
+    await product.save();
+
+    // Retrieve and return the updated list of all products
+    const updatedProducts = await Products.find();
+    res.status(200).json(updatedProducts);
+  } catch (error) {
+    console.error("Error updating product:", error);
+    res
+      .status(500)
+      .json({ success: false, message: "Failed to update product" });
+  }
+});
+
+router.delete("/delete/:productId", async (req, res) => {
+  try {
+    const productId = req.params.productId;
+
+    // Find the product by its ID
+    const product = await Products.findById(productId);
+
+    if (!product) {
+      return res
+        .status(404)
+        .json({ success: false, message: "Product not found" });
+    }
+
+    // Delete the product
+    await product.deleteOne();
+
+    const updatedProducts = await Products.find();
+    res.status(200).json(updatedProducts);
+  } catch (error) {
+    console.error("Error deleting product:", error);
+    res
+      .status(500)
+      .json({ success: false, message: "Failed to delete product" });
+  }
 });
 
 // Endpoint to update ratings and add reviews
